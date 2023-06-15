@@ -35,7 +35,7 @@ class CustomUserViewSet(UserViewSet):
             return CustomUserSerializer
         return super().get_serializer_class()
 
-    @action(detail=False, methods=['get'],
+    @action(detail=False, methods=('GET',),
             permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
         user = self.request.user
@@ -47,7 +47,7 @@ class CustomUserViewSet(UserViewSet):
         return Response(serializer.data)
 
     @action(
-        methods=['POST', 'DELETE'], detail=True,
+        methods=('POST', 'DELETE',), detail=True,
         permission_classes=(IsAuthenticated,),
     )
     def subscribe(self, request, id):
@@ -106,14 +106,14 @@ class RecipeViewSet(ModelViewSet):
         return Response({'error': 'Такого рецепта нет в списке.'
                          }, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['POST', 'DELETE'])
+    @action(detail=True, methods=('POST', 'DELETE',))
     def favorite(self, request, pk):
         if request.method == 'POST':
             return self.add_obj(request, FavoriteSerializer, pk)
 
         return self.delete_obj(request, Favorite, pk)
 
-    @action(detail=True, methods=['POST', 'DELETE'])
+    @action(detail=True, methods=('POST', 'DELETE',))
     def shopping_cart(self, request, pk):
         if request.method == 'POST':
             return self.add_obj(request, ShoppingCartSerializer, pk)
@@ -132,7 +132,7 @@ class RecipeViewSet(ModelViewSet):
         response['Content-Disposition'] = f'attachment; filename="{file}.txt"'
         return response
 
-    @action(detail=False, methods=['GET'])
+    @action(detail=False, methods=('GET',))
     def download_shopping_cart(self, request):
         ingredients = RecipeIngredient.objects.filter(
             recipe__shoppingcart__user=request.user
