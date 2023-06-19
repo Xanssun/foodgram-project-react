@@ -42,7 +42,7 @@ jobs:
         with:
           push: true
           context: frontend/
-          tags: foodgram:v2.11.1989
+          tags: xanssun/foodgram:latest
 
   deploy:
     runs-on: ubuntu-latest
