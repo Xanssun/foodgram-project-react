@@ -55,12 +55,9 @@ class CustomUserViewSet(UserViewSet):
         author = get_object_or_404(User, id=id)
         if request.method == 'POST':
             serializer = FollowSerializer(
-                    Follow.objects.create(user=user, author=author),
-                    context={'request': request},
-                )
-            return Response(
-                    serializer.data, status=status.HTTP_201_CREATED
-                )
+                Follow.objects.create(user=user, author=author),
+                context={'request': request})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         Follow.objects.filter(user=user, author=author).delete()
         return Response('Успешная отписка', status=status.HTTP_204_NO_CONTENT)
 
