@@ -10,7 +10,7 @@ services:
       - ./.env
 
   backend:
-    image: needred/foodgram-backend:latest
+    image: xanssun/foodgram-backend:latest
     restart: always
     volumes:
       - static_value:/app/static/
@@ -21,11 +21,11 @@ services:
       - ./.env
 
   frontend:
-    image: needred/foodgram-frontend:latest
+    image: xanssun/foodgram-frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
-      - backend
+      - db
 
   nginx:
     image: nginx:1.21.3-alpine
@@ -40,7 +40,7 @@ services:
       - ../docs/:/usr/share/nginx/html/api/docs/
     restart: always
     depends_on:
-      - frontend
+      - backend
 
 volumes:
   static_value:
