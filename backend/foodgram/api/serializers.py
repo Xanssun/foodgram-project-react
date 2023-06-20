@@ -62,13 +62,13 @@ class FollowSerializer(ModelSerializer):
             user=obj.user, author=obj.author).exists()
 
     def get_recipes_count(self, obj):
-        return obj.author.comment_author.filter(
+        return obj.author.recipes.filter(
             author=obj.author).count()
 
     def get_recipes(self, obj):
         request = self.context.get('request')
         limit = request.GET.get('recipes_limit')
-        queryset = obj.author.comment_author.filter(author=obj.author)
+        queryset = obj.author.recipes.all()
         if limit:
             queryset = queryset[:int(limit)]
         return RecipeShortShowSerializer(queryset, many=True).data
@@ -109,7 +109,7 @@ class RecipeIngredientSerializer(ModelSerializer):
 class RecipeReadSerializer(ModelSerializer):
     tags = TagSerializer(read_only=True, many=True)
     author = CustomUserSerializer(read_only=True)
-    ingredients = RecipeIngredientSerializer(source='ingredienttorecipe',
+    ingredients = RecipeIngredientSerializer(source='recipeingredient_set',
                                              read_only=True, many=True)
     is_favorited = SerializerMethodField()
     is_in_shopping_cart = SerializerMethodField()
@@ -121,17 +121,17 @@ class RecipeReadSerializer(ModelSerializer):
 
     def get_is_favorited(self, obj):
 
-        return obj.author.favorite.exists()
+        return obj.favorite.exists()
 
     def get_is_in_shopping_cart(self, obj):
 
-        return obj.author.shoppingcart.exists()
+        return obj.shoppingcart.exists()
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
         request = self.context.get('request')
         data['recipes'] = RecipeShortShowSerializer(
-            instance.recipes.all()[:request.GET.get('recipes_limit')],
+            instance.author.recipes.all()[:request.GET.get('recipes_limit')],
             many=True,
             context=self.context
         ).data
