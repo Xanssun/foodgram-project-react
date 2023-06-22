@@ -42,7 +42,7 @@ jobs:
         with:
           push: true
           context: backend/
-          tags: xanssun/backend:latest
+          tags: xanssun/foodgram-backend:latest
   
   build_and_push_front_to_docker_hub:
     name: Push Docker image to Docker Hub
@@ -63,7 +63,7 @@ jobs:
         with:
           push: true
           context: frontend/
-          tags: xanssun/foodgram:latest
+          tags: xanssun/foodgram-frontend:latest
 
   deploy:
     runs-on: ubuntu-latest
