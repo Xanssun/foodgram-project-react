@@ -23,7 +23,28 @@ jobs:
       run: |
         python -m flake8 backend
   
-  build_and_push_to_docker_hub:
+  build_and_push_back_to_docker_hub:
+    name: Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    needs: tests
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1 
+      - name: Login to Docker 
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Push to Docker Hub
+        uses: docker/build-push-action@v2 
+        with:
+          push: true
+          context: backend/
+          tags: xanssun/backend:latest
+  
+  build_and_push_front_to_docker_hub:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     needs: tests
@@ -46,7 +67,9 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build_and_push_to_docker_hub
+    needs:
+      - build_and_push_back_to_docker_hub
+      - build_and_push_front_to_docker_hub
     if: github.ref == 'refs/heads/master'
     steps:
     - name: executing remote ssh commands to deploy
@@ -60,6 +83,7 @@ jobs:
           cd backend/foodgram
           sudo docker-compose stop
           sudo docker-compose rm backend
+          sudo docker-compose rm frontend
           sudo rm -f .env
           touch .env
           echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
