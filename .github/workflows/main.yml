@@ -41,14 +41,12 @@ jobs:
         with:
           push: true
           tags: xanssun/foodgram-backend:latest
-          file: backend/Dockerfile
 
       - name: Push front to Docker Hub
         uses: docker/build-push-action@v2
         with:
           push: true
           tags: xanssun/foodgram-frontend:latest
-          file: frontend/Dockerfile
 
   deploy:
     runs-on: ubuntu-latest
