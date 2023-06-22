@@ -11,10 +11,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-oi(4=vp2$0zga*b*$pge@09l(!tc60z@m)3ocx))3!oqfap*w)'
 
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
-
+APPEND_SLASH = True
 
 INSTALLED_APPS = [
     'django.contrib.admin',

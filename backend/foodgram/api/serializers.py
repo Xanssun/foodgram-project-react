@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
-from django.forms import ValidationError
-from djoser.serializers import UserCreateSerializer, UserSerializer
+from django.forms import CharField, ValidationError
+from djoser.serializers import (UserCreateSerializer, UserSerializer,
+                                PasswordSerializer)
 from recipes.models import (Recipe, Tag, Ingredient, RecipeIngredient,
                             Favorite, ShoppingCart)
 from rest_framework.serializers import (ModelSerializer, IntegerField,
@@ -12,7 +13,17 @@ from drf_extra_fields.fields import Base64ImageField
 from users.models import Follow
 from django.db import transaction
 
+
 User = get_user_model()
+
+
+class ChangePasswordSerializer(PasswordSerializer):
+    new_password = CharField(required=True)
+
+    def save(self):
+        user = self.context['request'].user
+        user.set_password(self.validated_data['new_password'])
+        user.save()
 
 
 class CustomUserSerializer(UserSerializer):
@@ -161,7 +172,7 @@ class RecipeSerializer(ModelSerializer):
         fields = ('ingredients', 'tags', 'image', 'name', 'text',
                   'cooking_time', 'author')
 
-    def create_ingrendients_for_recipe(self, recipe, ingredietns):
+    def create_ingredients_for_recipe(self, recipe, ingredietns):
         RecipeIngredient.objects.bulk_create([
             RecipeIngredient(recipe=recipe,
                              ingredient_id=ingredient.get(
@@ -201,8 +212,7 @@ class RecipeSerializer(ModelSerializer):
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
-        self.create_ingrendients_for_recipe(recipe,
-                                            ingredients_data)
+        self.create_ingredients_for_recipe(recipe, ingredients_data)
         return recipe
 
     @transaction.atomic()
@@ -212,7 +222,7 @@ class RecipeSerializer(ModelSerializer):
         instance.tags.clear()
         RecipeIngredient.objects.filter(recipe=instance).delete()
         instance.tags.set(tags)
-        self.create_ingrendients_for_recipe(instance, ingredietns)
+        self.create_ingredients_for_recipe(instance, ingredietns)
         return super().update(instance, validated_data)
 
 

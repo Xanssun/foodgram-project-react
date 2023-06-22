@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from .paginations import LimitPageNumberPagination
 from .serializers import (CustomUserCreateSerializer, CustomUserSerializer,
-                          FollowSerializer,
+                          FollowSerializer, ChangePasswordSerializer,
                           TagSerializer,
                           IngredientSerializer, RecipeSerializer,
                           RecipeReadSerializer, FavoriteSerializer,
@@ -48,8 +48,7 @@ class CustomUserViewSet(UserViewSet):
 
     @action(
         methods=('POST', 'DELETE',), detail=True,
-        permission_classes=(IsAuthenticated,),
-    )
+        permission_classes=(IsAuthenticated,))
     def subscribe(self, request, id):
         user = request.user
         author = get_object_or_404(User, id=id)
@@ -60,6 +59,18 @@ class CustomUserViewSet(UserViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         Follow.objects.filter(user=user, author=author).delete()
         return Response('Успешная отписка', status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        methods=('POST',),
+        detail=False,
+        permission_classes=(IsAuthenticated,))
+    def change_password(self, request):
+        serializer = ChangePasswordSerializer(data=request.data,
+                                              context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'detail': 'Пороль изменен.'},
+                        status=status.HTTP_200_OK)
 
 
 class TagViewSet(ReadOnlyModelViewSet):
@@ -78,11 +89,28 @@ class RecipeViewSet(ModelViewSet):
     filterset_class = AuthorAndTagFilter
     permission_classes = [IsAuthorOrReadOnly]
     pagination_class = LimitPageNumberPagination
-    
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = RecipeSerializer(instance)
+
+        if request.method == 'PATCH':
+            # Обработка PATCH-запроса
+            partial = kwargs.pop('partial', False)
+            serializer = RecipeSerializer(instance, data=request.data,
+                                          partial=partial)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+
+        # Обработка GET-запроса
+        return Response(serializer.data)
+
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(instance, data=request.data,
+                                         partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
