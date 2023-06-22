@@ -44,7 +44,7 @@ class CustomUserViewSet(UserViewSet):
         serializer = FollowSerializer(
             page, many=True, context={'request': request}
         )
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)
 
     @action(
         methods=('POST', 'DELETE',), detail=True,
@@ -75,12 +75,20 @@ class IngredientViewSet(ReadOnlyModelViewSet):
 class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    filter_class = AuthorAndTagFilter
+    filterset_class = AuthorAndTagFilter
     permission_classes = [IsAuthorOrReadOnly]
     pagination_class = LimitPageNumberPagination
+    
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+    def perform_update(self, serializer):
+        serializer.save()
 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:

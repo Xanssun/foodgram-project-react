@@ -206,14 +206,14 @@ class RecipeSerializer(ModelSerializer):
         return recipe
 
     @transaction.atomic()
-    def update(self, instance, validate_data):
-        tags = validate_data.pop('tags')
-        ingredietns = validate_data.pop('ingredient')
+    def update(self, instance, validated_data):
+        tags = validated_data.pop('tags')
+        ingredietns = validated_data.pop('ingredients')
         instance.tags.clear()
         RecipeIngredient.objects.filter(recipe=instance).delete()
         instance.tags.set(tags)
-        self.create_ingrenfients_for_recipe(instance, ingredietns)
-        return super().update(instance, validate_data)
+        self.create_ingrendients_for_recipe(instance, ingredietns)
+        return super().update(instance, validated_data)
 
 
 class FavoriteSerializer(ModelSerializer):
