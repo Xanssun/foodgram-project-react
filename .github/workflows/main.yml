@@ -80,10 +80,6 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         passphrase: ${{ secrets.PASSPHRASE }}
         script: |
-          cd foodgram-project-react/backend/foodgram
-          sudo docker-compose stop
-          sudo docker-compose rm backend
-          sudo docker-compose rm frontend
           sudo rm .env
           touch .env
           echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
@@ -92,6 +88,12 @@ jobs:
           echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
           echo DB_HOST=${{ secrets.DB_HOST }} >> .env
           echo DB_PORT=${{ secrets.DB_PORT }} >> .env
+          cd foodgram-project-react/backend/foodgram
+          sudo docker-compose stop
+          sudo docker-compose rm backend
+          sudo docker-compose pull backend
+          sudo docker-compose rm frontend
+          sudo docker-compose pull frontend
           sudo docker-compose up -d --build
           sudo docker-compose exec -T backend python manage.py makemigrations
           sudo docker-compose exec -T backend python manage.py migrate
