@@ -60,17 +60,17 @@ class CustomUserViewSet(UserViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         Follow.objects.filter(user=user, author=author).delete()
         return Response('Успешная отписка', status=status.HTTP_204_NO_CONTENT)
-    
+
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
 
-        # Проверка подписки
         is_subscribed = False
         if request.user.is_authenticated:
             user = request.user
             author = instance
-            is_subscribed = Follow.objects.filter(user=user, author=author).exists()
+            is_subscribed = Follow.objects.filter(user=user,
+                                                  author=author).exists()
 
         data = serializer.data
         data['is_subscribed'] = is_subscribed
