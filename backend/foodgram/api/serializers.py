@@ -180,21 +180,19 @@ class RecipeSerializer(ModelSerializer):
                              amount=ingredient.get('amount'),)
             for ingredient in ingredietns])
 
-    def validate_ingredients(self, ingredients):
-        if not ingredients:
-            raise ValidationError('Укажите ингредиенты!')
-
-        ingredient_list = []
-        for ingredient in ingredients:
-            ingredient_id = ingredient.get('id')
-            if ingredient_id in ingredient_list:
-                raise ValidationError('Ингредиенты должны быть уникальными')
-            ingredient_list.append(ingredient_id)
-            amount = ingredient['amount']
-            if int(amount) == 0:
-                raise ValidationError('Количество ингредиента не может быть 0')
-
-        return ingredients
+    def validate_ingredient(self, data):
+        ingredients_list = []
+        for ingredient in data.get('recipeingredients'):
+            if int(ingredient.get('amount')) <= 0:
+                raise ValidationError(
+                    'Количество не может быть меньше 1'
+                )
+            ingredients_list.append(ingredient.get('id'))
+        if len(set(ingredients_list)) != len(ingredients_list):
+            raise ValidationError(
+                'Ингредиенты не должны повторяться!'
+            )
+        return data
 
     def validate_tags(self, tags):
         if not tags:

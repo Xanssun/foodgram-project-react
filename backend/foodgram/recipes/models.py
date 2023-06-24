@@ -101,6 +101,10 @@ class RecipeIngredient(models.Model):
                           message='Мин. количество ингредиента - 1')
     ])
 
+    class Meta:
+        verbose_name = 'Ингредиент в рецепте'
+        verbose_name_plural = 'Ингредиенты в рецепте'
+
 
 class FavoriteAndShoppingCart(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

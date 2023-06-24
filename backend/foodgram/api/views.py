@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from .premissions import IsAuthorOrReadOnly
-from .filters import AuthorAndTagFilter
+from .filters import AuthorAndTagFilter, IngredientFilter
 from django.http.response import HttpResponse
 from django.db.models import Sum
 from rest_framework.permissions import IsAuthenticated
@@ -21,6 +21,7 @@ from rest_framework.permissions import IsAuthenticated
 from recipes.models import (Recipe, Tag, Ingredient, RecipeIngredient,
                             Favorite, ShoppingCart)
 from users.models import Follow
+from django_filters.rest_framework import DjangoFilterBackend
 
 User = get_user_model()
 
@@ -81,12 +82,15 @@ class TagViewSet(ReadOnlyModelViewSet):
 class IngredientViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    filter_backends = (DjangoFilterBackend, )
+    filterset_class = IngredientFilter
 
 
 class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     filterset_class = AuthorAndTagFilter
+    filter_backends = (DjangoFilterBackend, )
     permission_classes = [IsAuthorOrReadOnly]
     pagination_class = LimitPageNumberPagination
 
@@ -95,7 +99,6 @@ class RecipeViewSet(ModelViewSet):
         serializer = RecipeSerializer(instance)
 
         if request.method == 'PATCH':
-            # Обработка PATCH-запроса
             partial = kwargs.pop('partial', False)
             serializer = RecipeSerializer(instance, data=request.data,
                                           partial=partial)
@@ -103,8 +106,10 @@ class RecipeViewSet(ModelViewSet):
             serializer.save()
             return Response(serializer.data)
 
-        # Обработка GET-запроса
         return Response(serializer.data)
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
